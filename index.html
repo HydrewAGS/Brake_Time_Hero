@@ -399,6 +399,35 @@
   .class-opt div.cn{ font-size:12px; margin-top:6px; font-weight:600; }
   .class-opt div.cd{ font-size:10px; color:var(--ink-faint); }
 
+  /* profesyonel kuşanma seçim ekranı */
+  .equip-picker{ text-align:left; }
+  .equip-picker h3{ margin:0; font-size:14px; }
+  .ep-item-preview{ display:flex; align-items:center; gap:12px; }
+  .ep-item-icon{
+    width:44px; height:44px; min-width:44px; border-radius:9px; border:2px solid;
+    background:var(--bg-3); display:flex; align-items:center; justify-content:center; font-size:22px;
+  }
+  .ep-hero-list{ display:flex; flex-direction:column; gap:8px; max-height:280px; overflow-y:auto; -webkit-overflow-scrolling:touch; }
+  .ep-hero-option{
+    display:flex; align-items:center; gap:10px; background:var(--bg-2); border:1px solid var(--line);
+    border-radius:9px; padding:8px 10px; cursor:pointer; transition:background .15s, border-color .15s, transform .1s;
+    text-align:left;
+  }
+  .ep-hero-option:hover{ background:#413630; border-color:var(--accent-dim); }
+  .ep-hero-option:active{ transform:scale(0.98); }
+  .ep-hero-sprite{ width:38px; height:38px; min-width:38px; display:flex; align-items:center; justify-content:center; }
+  .ep-hero-sprite svg{ width:36px; height:36px; }
+  .ep-hero-info{ flex:1; min-width:0; }
+  .ep-hero-name{ font-size:12.5px; font-weight:600; }
+  .ep-hero-lvl{ font-weight:400; color:var(--ink-faint); font-size:10.5px; }
+  .ep-hero-current{ font-size:10px; color:var(--ink-faint); margin:1px 0 4px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .ep-hero-delta{ display:flex; flex-wrap:wrap; gap:5px; }
+  .ep-hero-delta .stat-chip{ font-size:10px; padding:1px 6px; }
+  .ep-hero-delta .stat-up{ background:#2a4030; color:#8fd99f; }
+  .ep-hero-delta .stat-down{ background:#402a2a; color:#e0958a; }
+  .ep-hero-delta .ep-nochange{ opacity:.55; }
+  .ep-hero-go{ font-size:18px; color:var(--ink-faint); }
+
   ::-webkit-scrollbar{ width:8px; height:8px; }
   ::-webkit-scrollbar-thumb{ background:#4a3d34; border-radius:4px; }
   ::-webkit-scrollbar-track{ background:transparent; }
@@ -1136,7 +1165,6 @@ function renderItemDetail(){
   const wrap = document.getElementById('itemDetailWrap');
   const it = state.inventory.find(i=>i.id===selectedItemId);
   if(!it){ wrap.innerHTML=''; return; }
-  const heroOptions = state.heroes.map(h=>`<option value="${h.slot}">${CLASS_DEFS[h.cls].name} (Sv.${h.level})</option>`).join('');
   wrap.innerHTML = `
     <div class="item-detail">
       <h4 style="color:${RARITY[it.rarityIdx].color}">${it.icon} ${it.name}</h4>
@@ -1148,23 +1176,13 @@ function renderItemDetail(){
         ${it.bonus.map(b=>`<span class="stat-chip" style="color:var(--accent-bright)">${bonusLabel(b)}</span>`).join('')}
       </div>
       <div class="item-actions">
-        <select id="equipTarget" class="btn small">${heroOptions}</select>
-        <button class="btn small primary" id="btnEquip">Kuşan</button>
+        <button class="btn small primary" id="btnEquip">Kuşandır…</button>
         <button class="btn small" id="btnPolish">Cilala (60💰+2🔷)</button>
         <button class="btn small" id="btnSell">Sat (+${Math.round(20*RARITY[it.rarityIdx].mult)}💰)</button>
       </div>
     </div>`;
   document.getElementById('btnEquip').addEventListener('click', ()=>{
-    const slot = +document.getElementById('equipTarget').value;
-    const hero = state.heroes.find(h=>h.slot===slot);
-    if(!hero) return;
-    const old = hero.equip[it.type];
-    hero.equip[it.type] = it;
-    state.inventory = state.inventory.filter(i=>i.id!==it.id);
-    if(old) state.inventory.push(old);
-    pushLog(`<span class="lg-good">${CLASS_DEFS[hero.cls].name} '${it.name}' kuşandı.</span>`);
-    selectedItemId = null;
-    render(); saveGame();
+    showEquipPickerModal(it);
   });
   document.getElementById('btnPolish').addEventListener('click', ()=>{
     if(state.gold<60 || state.essence<2){ showToast('Yeterli altın/öz yok.'); return; }
@@ -1185,6 +1203,94 @@ function renderItemDetail(){
     render(); saveGame();
   });
 }
+
+/* ============================================================
+   PROFESYONEL KUŞANMA SEÇİM EKRANI
+   Her kahramanı gerçek sprite'ı, seviyesi, o slotta şu an ne takılı
+   olduğu ve yeni eşyanın getireceği net stat farkıyla (yeşil/kırmızı)
+   birlikte gösteren bir seçim modalı.
+============================================================ */
+
+function itemStatTotal(item){
+  const t = {atk:0, def:0, hp:0, crit:0};
+  if(!item) return t;
+  t.atk = item.stats.atk||0; t.def = item.stats.def||0; t.hp = item.stats.hp||0; t.crit = item.stats.crit||0;
+  for(const b of item.bonus){ t.atk+=b.atk||0; t.def+=b.def||0; t.hp+=b.hp||0; t.crit+=b.crit||0; }
+  return t;
+}
+
+function statDeltaChips(oldItem, newItem){
+  const o = itemStatTotal(oldItem), n = itemStatTotal(newItem);
+  const defs = [
+    {key:'atk', icon:'⚔'}, {key:'def', icon:'🛡'}, {key:'hp', icon:'❤'}, {key:'crit', icon:'✦', pct:true}
+  ];
+  const chips = [];
+  for(const d of defs){
+    const delta = n[d.key]-o[d.key];
+    const threshold = d.pct ? 0.0009 : 0.4;
+    if(Math.abs(delta) < threshold) continue;
+    const cls = delta>0 ? 'stat-up' : 'stat-down';
+    const arrow = delta>0 ? '▲' : '▼';
+    const shown = d.pct ? Math.round(Math.abs(delta)*100)+'%' : Math.round(Math.abs(delta));
+    chips.push(`<span class="stat-chip ${cls}">${d.icon} ${arrow}${shown}</span>`);
+  }
+  return chips.length ? chips.join('') : `<span class="stat-chip ep-nochange">fark yok</span>`;
+}
+
+function showEquipPickerModal(item){
+  const rarity = RARITY[item.rarityIdx];
+  const td = ITEM_TYPES.find(t=>t.key===item.type);
+  const heroRows = state.heroes.map(h=>{
+    const cd = CLASS_DEFS[h.cls];
+    const current = h.equip[item.type];
+    return `
+      <div class="ep-hero-option" data-slot="${h.slot}">
+        <div class="ep-hero-sprite">${svgUnit(cd.tint, cd.weapon, h.cls)}</div>
+        <div class="ep-hero-info">
+          <div class="ep-hero-name">${cd.name} <span class="ep-hero-lvl">Sv.${h.level}</span></div>
+          <div class="ep-hero-current">${current ? ('Takılı: '+current.name) : (td.label+' slotu boş')}</div>
+          <div class="ep-hero-delta">${statDeltaChips(current, item)}</div>
+        </div>
+        <div class="ep-hero-go">›</div>
+      </div>`;
+  }).join('');
+
+  showModal(`
+    <div class="equip-picker">
+      <div class="ep-item-preview">
+        <div class="ep-item-icon" style="border-color:${rarity.color}">${item.icon}</div>
+        <div>
+          <div class="cr-rarity-label" style="color:${rarity.color}">${rarity.label} ${td.label}</div>
+          <h3 style="margin:2px 0;">${item.name}</h3>
+        </div>
+      </div>
+      <div class="section-title" style="margin-top:10px;">Kime kuşandırılsın?</div>
+      <div class="ep-hero-list">
+        ${heroRows || '<div class="empty-hint">Henüz kahramanın yok.</div>'}
+      </div>
+      <button class="btn full" id="btnCancelEquipPick">Vazgeç</button>
+    </div>
+  `);
+
+  document.querySelectorAll('.ep-hero-option').forEach(row=>{
+    row.addEventListener('click', ()=>{
+      const slot = +row.dataset.slot;
+      const hero = state.heroes.find(h=>h.slot===slot);
+      if(!hero) return;
+      const old = hero.equip[item.type];
+      hero.equip[item.type] = item;
+      state.inventory = state.inventory.filter(i=>i.id!==item.id);
+      if(old) state.inventory.push(old);
+      pushLog(`<span class="lg-good">${CLASS_DEFS[hero.cls].name} '${item.name}' kuşandı.</span>`);
+      selectedItemId = null;
+      hideModal();
+      render(); saveGame();
+    });
+  });
+  const cancelBtn = document.getElementById('btnCancelEquipPick');
+  if(cancelBtn) cancelBtn.addEventListener('click', hideModal);
+}
+
 function bonusLabel(b){
   if(b.atk) return `⚔+${b.atk}`;
   if(b.def) return `🛡+${b.def}`;
