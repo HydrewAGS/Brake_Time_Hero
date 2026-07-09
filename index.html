@@ -439,6 +439,7 @@
     </div>
     <div class="spacer"></div>
     <div class="stat-item" id="autoOpenIndicator" style="display:none;">⚙️ Oto-Açılım Aktif</div>
+    <button class="btn small primary" id="btnInstall" style="display:none;" title="Ana ekrana ekle">📲 Yükle</button>
     <button class="btn small" id="btnReset" title="Kaydı sıfırla">Sıfırla</button>
   </div>
 
@@ -1715,6 +1716,63 @@ document.getElementById('btnMax').addEventListener('click', ()=>{
 document.getElementById('btnClose').addEventListener('click', ()=>{
   showToast('Kapatma yalnızca gerçek masaüstü sürümünde çalışır.');
 });
+
+/* ============================================================
+   ANA EKRANA YÜKLEME (PWA install)
+============================================================ */
+
+let deferredInstallPrompt = null;
+const btnInstall = document.getElementById('btnInstall');
+
+function isStandaloneDisplay(){
+  return (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true;
+}
+function isIOSDevice(){
+  return /iphone|ipad|ipod/i.test(navigator.userAgent) && !window.MSStream;
+}
+
+function updateInstallButton(){
+  if(isStandaloneDisplay()){ btnInstall.style.display = 'none'; return; }
+  if(deferredInstallPrompt || isIOSDevice()){ btnInstall.style.display = 'inline-flex'; }
+  else { btnInstall.style.display = 'none'; }
+}
+
+// Chrome/Edge/Android: tarayıcı yükleme kriterlerini karşıladığında bu olayı ateşler.
+window.addEventListener('beforeinstallprompt', (e)=>{
+  e.preventDefault();
+  deferredInstallPrompt = e;
+  updateInstallButton();
+});
+
+window.addEventListener('appinstalled', ()=>{
+  deferredInstallPrompt = null;
+  btnInstall.style.display = 'none';
+  showToast('Brake Time Hero ana ekrana eklendi! 🎉');
+});
+
+btnInstall.addEventListener('click', async ()=>{
+  if(deferredInstallPrompt){
+    deferredInstallPrompt.prompt();
+    const choice = await deferredInstallPrompt.userChoice;
+    deferredInstallPrompt = null;
+    if(choice && choice.outcome==='accepted'){ btnInstall.style.display='none'; }
+  } else if(isIOSDevice()){
+    // Safari programatik yükleme istemini desteklemiyor — elle adımları göster.
+    showModal(`
+      <h3>Ana Ekrana Ekle</h3>
+      <p>Safari'de alttaki (ya da adres çubuğundaki) <b>Paylaş</b> simgesine
+      (kare içinde yukarı ok) dokun, açılan listeden <b>"Ana Ekrana Ekle"</b>
+      seçeneğini seç.</p>
+      <button class="btn primary full" id="btnCloseInstallInfo">Anladım</button>
+    `);
+    const btn = document.getElementById('btnCloseInstallInfo');
+    if(btn) btn.addEventListener('click', hideModal);
+  } else {
+    showToast('Bu tarayıcı otomatik yüklemeyi desteklemiyor olabilir. Tarayıcı menüsünden "Ana ekrana ekle" seçeneğine bakabilirsin.');
+  }
+});
+
+updateInstallButton();
 
 /* ============================================================
    BAŞLATMA
