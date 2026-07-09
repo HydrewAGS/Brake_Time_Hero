@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Pencere Kahramanları</title>
+<title>Brake Time Hero</title>
 <style>
   :root{
     --bg-0:#161210;
@@ -65,7 +65,8 @@
     -webkit-user-select:none; user-select:none;
     cursor:default;
   }
-  .titlebar .tb-icon{ font-size:14px; filter:saturate(1.2); }
+  .titlebar .tb-icon{ display:flex; align-items:center; filter:saturate(1.2); }
+  .titlebar .tb-icon svg{ width:16px; height:16px; display:block; }
   .titlebar .tb-title{ font-size:12.5px; color:var(--ink-dim); letter-spacing:.3px; flex:1; }
   .tb-btns{ display:flex; gap:6px; }
   .tb-btn{
@@ -399,8 +400,8 @@
 
 <div class="os-window" id="osWindow">
   <div class="titlebar">
-    <span class="tb-icon">🗡️</span>
-    <span class="tb-title">Pencere Kahramanları — v0.1 prototip</span>
+    <span class="tb-icon" id="tbIcon"></span>
+    <span class="tb-title">Brake Time Hero — v0.1 prototip</span>
     <div class="tb-btns">
       <div class="tb-btn tb-min" id="btnMin" title="Küçült">–</div>
       <div class="tb-btn tb-max" id="btnMax" title="Büyüt">▢</div>
@@ -726,6 +727,37 @@ function pushLog(html){
 ============================================================ */
 
 const SPRITE_DATA = {
+  icon: {
+    rows: [
+    "           rrrr           ",
+    "        RRRRTRRRR         ",
+    "      RRRRDDTDDRRRR       ",
+    "     RRRDDDDDDDDDRRR      ",
+    "    RRDDDDDDDDDDDDDRR     ",
+    "   RRDDDDDDDDDDDDDDDRR    ",
+    "  RRDDDDDDDDDDDDDDDDDRR   ",
+    "  RRDDDDDDDDDDDDDDDDDRR   ",
+    " RRDDDDDDDAAPPAADDDDDDRR  ",
+    " RRDDDDDDDAAAAAADDDDDDRR  ",
+    " RDDDDDDDDAAEEAADDDDDDDR  ",
+    " RDDDDDDDDAASSAADDDDDDDR  ",
+    "RTTDDDDDDDDSSSSDDDDDDDTTR ",
+    " RDDDDDDDDDDDDDDDDDDDDDR  ",
+    " RDDDDDDDDDDDDDDDDDDDDDR  ",
+    " RRDDDDDDDDDDDDDDDDDDDRR  ",
+    " RRDDDDDDDDDDDDDDDDDDDRR  ",
+    "  RRDDDDDDDDDDDDDDDDDRR   ",
+    "  RRDDDDDDDDDDDDDDDDDRR   ",
+    "   RRDDDDDDDDDDDDDDDRR    ",
+    "    RRDDDDDDDDDDDDDRR     ",
+    "     RRRDDDDDDDDDRRR      ",
+    "      RRRRDDTDDRRRR       ",
+    "        RRRRTRRRR         ",
+    "            R             ",
+    "                          "
+    ],
+    palette: { "R":"#caa15c", "D":"#241f1a", "T":"#efe3c8", "r":"#e0a545", "A":"#8a97a8", "S":"#e8c9a0", "E":"#171310", "P":"#a8443a" }
+  },
   knight: {
     rows: [
     "       AAPPAA       ",
@@ -863,7 +895,7 @@ function renderPixelSprite(spriteKey, extraGlow){
   let w = 0;
   for(const r of rows) w = Math.max(w, r.length);
   const glow = extraGlow ? ` filter="drop-shadow(0 0 4px ${extraGlow})"` : '';
-  let rects = `<ellipse cx="${w/2}" cy="${h-0.4}" rx="${w*0.3}" ry="0.7" fill="#000" opacity="0.32"/>`;
+  let rects = (spriteKey==='icon') ? '' : `<ellipse cx="${w/2}" cy="${h-0.4}" rx="${w*0.3}" ry="0.7" fill="#000" opacity="0.32"/>`;
   for(let y=0;y<h;y++){
     const r = rows[y];
     for(let x=0;x<r.length;x++){
@@ -872,7 +904,7 @@ function renderPixelSprite(spriteKey, extraGlow){
       rects += `<rect x="${x}" y="${y}" width="1" height="1" fill="${pal[ch]}"/>`;
     }
   }
-  return `<svg viewBox="0 0 ${w} ${h}" shape-rendering="crispEdges"${glow}>${rects}</svg>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}" shape-rendering="crispEdges"${glow}>${rects}</svg>`;
 }
 
 function svgUnit(tint, weaponColor, cls, extraGlow){
@@ -1658,6 +1690,16 @@ document.getElementById('btnClose').addEventListener('click', ()=>{
 ============================================================ */
 
 async function init(){
+  // başlık çubuğu ikonu + favicon (aynı piksel-sprite verisinden üretilir)
+  const iconSvg = renderPixelSprite('icon');
+  const tbIconEl = document.getElementById('tbIcon');
+  if(tbIconEl) tbIconEl.innerHTML = iconSvg;
+  const favLink = document.createElement('link');
+  favLink.rel = 'icon';
+  favLink.type = 'image/svg+xml';
+  favLink.href = 'data:image/svg+xml,' + encodeURIComponent(iconSvg);
+  document.head.appendChild(favLink);
+
   const loaded = await loadGame();
   if(loaded){
     state = loaded;
