@@ -4,6 +4,20 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Brake Time Hero</title>
+
+<!-- PWA: ana ekrana yükleme desteği. Bu meta/link etiketlerinin işe yaraması için
+     dosyanın (manifest.json, sw.js, icon-*.png ile birlikte) http(s):// üzerinden
+     sunuluyor olması gerekir — file:// üzerinden açıldığında tarayıcılar yükleme
+     istemini göstermez. -->
+<link rel="manifest" href="./manifest.json">
+<meta name="theme-color" content="#161210">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Brake Time Hero">
+<link rel="apple-touch-icon" href="./icon-192.png">
+<link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png">
+
 <style>
   :root{
     --bg-0:#161210;
@@ -263,7 +277,7 @@
 
   .log-strip{
     height:88px; border-top:1px solid var(--line); background:var(--bg-0);
-    padding:6px 12px; overflow-y:auto; font-size:11.5px; color:var(--ink-faint);
+    padding:6px 12px; overflow-y:auto; -webkit-overflow-scrolling:touch; font-size:11.5px; color:var(--ink-faint);
     font-family:var(--font-mono); line-height:1.55;
   }
   .log-strip div{ opacity:.9; }
@@ -275,7 +289,7 @@
   .log-strip .lg-good{ color:var(--accent-bright); }
 
   /* ---------- yan panel ---------- */
-  .side{ flex:1; display:flex; flex-direction:column; min-width:300px; background:var(--bg-1); }
+  .side{ flex:1; display:flex; flex-direction:column; min-width:300px; min-height:0; background:var(--bg-1); }
   .tabs{ display:flex; border-bottom:1px solid var(--line); background:var(--bg-2); }
   .tab{
     flex:1; padding:10px 6px; text-align:center; font-size:12px; color:var(--ink-faint);
@@ -283,7 +297,7 @@
   }
   .tab:hover{ color:var(--ink-dim); }
   .tab.active{ color:var(--accent-bright); border-bottom-color:var(--accent); background:var(--bg-1); }
-  .panel{ flex:1; overflow-y:auto; padding:14px; display:none; }
+  .panel{ flex:1; min-height:0; overflow-y:auto; -webkit-overflow-scrolling:touch; padding:14px; display:none; }
   .panel.active{ display:block; }
 
   .hero-card{
@@ -572,21 +586,38 @@ function maxUnlockedSlot(){
 }
 
 /* ============================================================
-   YARDIMCI: KAYIT / YÜKLEME  (window.storage - persistent)
+   YARDIMCI: KAYIT / YÜKLEME
+   İki ortamı da destekler:
+   - Claude.ai artifact önizlemesi  -> window.storage (kalıcı, hesaba bağlı)
+   - Bağımsız barındırılan / PWA olarak yüklenmiş sürüm -> localStorage
+     (window.storage yalnızca Claude'un artifact ortamında var olduğu için,
+     kendi sunucunda barındırdığında ya da ana ekrana yüklediğinde otomatik
+     olarak localStorage'a düşer.)
 ============================================================ */
 
+const hasClaudeStorage = (typeof window.storage !== 'undefined') && window.storage && typeof window.storage.get === 'function';
+
 async function saveGame(){
+  state.lastSave = Date.now();
   try{
-    state.lastSave = Date.now();
-    await window.storage.set(SAVE_KEY, JSON.stringify(state), false);
+    if(hasClaudeStorage){
+      await window.storage.set(SAVE_KEY, JSON.stringify(state), false);
+    } else {
+      localStorage.setItem(SAVE_KEY, JSON.stringify(state));
+    }
   }catch(e){ console.warn('Kayıt başarısız:', e); }
 }
 
 async function loadGame(){
   try{
-    const res = await window.storage.get(SAVE_KEY, false);
-    if(res && res.value){ return JSON.parse(res.value); }
-    return null;
+    if(hasClaudeStorage){
+      const res = await window.storage.get(SAVE_KEY, false);
+      if(res && res.value){ return JSON.parse(res.value); }
+      return null;
+    } else {
+      const raw = localStorage.getItem(SAVE_KEY);
+      return raw ? JSON.parse(raw) : null;
+    }
   }catch(e){
     return null; // anahtar yok ya da hata -> ilk kez oynanıyor
   }
@@ -1736,6 +1767,16 @@ async function init(){
 }
 
 init();
+
+// PWA: yalnızca güvenli bağlamda (https ya da localhost) service worker
+// kaydı dener — file:// üzerinden açıldığında sessizce atlanır.
+if('serviceWorker' in navigator && (location.protocol==='https:' || location.hostname==='localhost')){
+  window.addEventListener('load', ()=>{
+    navigator.serviceWorker.register('./sw.js').catch((err)=>{
+      console.warn('Service worker kaydı başarısız:', err);
+    });
+  });
+}
 
 })();
 </script>
