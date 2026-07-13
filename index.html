@@ -20,27 +20,41 @@
 
 <style>
   :root{
-    --bg-0:#161210;
-    --bg-1:#1f1a16;
-    --bg-2:#2a2320;
-    --bg-3:#352c27;
-    --line:#4a3d34;
-    --ink:#ece2d0;
-    --ink-dim:#b7a894;
-    --ink-faint:#7d6f60;
-    --accent:#7fa384;
-    --accent-dim:#54705a;
-    --accent-bright:#a8caa0;
-    --gold:#e0a545;
+    /* yüzeyler — sıcak, derin taş/maun tonları, kademeli yükseklik hissi için */
+    --bg-0:#120d0a;
+    --bg-1:#1a1410;
+    --bg-2:#241c16;
+    --bg-3:#2f251c;
+    --bg-4:#3b2e22;
+    --line:#3c2f23;
+    --line-soft:#271f18;
+
+    --ink:#f2e8d8;
+    --ink-dim:#c4b399;
+    --ink-faint:#8c7b64;
+
+    --accent:#8fae87;
+    --accent-dim:#4d6249;
+    --accent-bright:#b3d1aa;
+
+    --gold:#dcae5a;
+    --gold-dim:#8a6c38;
     --danger:#c1594a;
     --heal:#6fa593;
+
     --r-common:#9a9088;
     --r-uncommon:#5fbf6f;
     --r-rare:#5b9de0;
     --r-epic:#b876e0;
-    --r-legendary:#e0a545;
-    --radius:10px;
-    --font-display: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    --r-legendary:#dcae5a;
+
+    --radius-sm:7px;
+    --radius:12px;
+    --radius-lg:18px;
+
+    --sp-1:4px; --sp-2:8px; --sp-3:12px; --sp-4:16px; --sp-5:24px;
+
+    --font-display: -apple-system, 'Segoe UI', system-ui, sans-serif;
     --font-mono: 'Consolas', 'SFMono-Regular', Menlo, monospace;
   }
   *{box-sizing:border-box;}
@@ -79,9 +93,9 @@
     -webkit-user-select:none; user-select:none;
     cursor:default;
   }
-  .titlebar .tb-icon{ display:flex; align-items:center; filter:saturate(1.2); }
-  .titlebar .tb-icon svg{ width:16px; height:16px; display:block; }
-  .titlebar .tb-title{ font-size:12.5px; color:var(--ink-dim); letter-spacing:.3px; flex:1; }
+  .titlebar .tb-icon{ display:flex; align-items:center; filter:saturate(1.15); opacity:.9; }
+  .titlebar .tb-icon svg{ width:15px; height:15px; display:block; }
+  .titlebar .tb-title{ font-size:11.5px; font-weight:600; color:var(--ink-faint); letter-spacing:.4px; flex:1; }
   .tb-btns{ display:flex; gap:6px; }
   .tb-btn{
     width:13px; height:13px; border-radius:50%; border:1px solid rgba(0,0,0,.4);
@@ -103,28 +117,53 @@
 
   /* ---------- üst istatistik çubuğu ---------- */
   .statbar{
-    display:flex; align-items:center; gap:18px;
-    padding:8px 16px; background:var(--bg-2); border-bottom:1px solid var(--line);
+    display:flex; align-items:center; gap:var(--sp-3);
+    padding:10px var(--sp-4); background:var(--bg-2); border-bottom:1px solid var(--line);
     font-size:12.5px; color:var(--ink-dim);
   }
   .statbar b{ color:var(--ink); font-weight:600; }
   .stat-item{ display:flex; align-items:center; gap:6px; white-space:nowrap; }
   .stat-icon{ font-size:13px; }
-  .gold-amt{ color:var(--gold); font-family:var(--font-mono); font-weight:700; }
+  .gold-amt{ color:var(--gold); font-family:var(--font-mono); font-weight:700; font-size:13px; }
   .statbar .spacer{ flex:1; }
+
+  .wallet{
+    display:flex; align-items:center; gap:var(--sp-3);
+    background:var(--bg-1); border:1px solid var(--line-soft); border-radius:999px;
+    padding:6px 14px;
+  }
+  .wallet-div{ width:1px; height:14px; background:var(--line); }
+
   .stage-pill{
-    background:var(--bg-3); border:1px solid var(--line); border-radius:20px;
-    padding:4px 12px; font-size:12px; display:flex; align-items:center; gap:8px;
-    min-width:0;
+    background:var(--bg-1); border:1px solid var(--line-soft); border-radius:999px;
+    padding:6px 8px 6px 16px; font-size:12.5px; font-weight:600; letter-spacing:.2px;
+    display:flex; align-items:center; gap:10px; min-width:0; color:var(--ink);
   }
   #statStageLabel{ max-width:170px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .stage-nav{ display:flex; gap:4px; }
   .stage-nav button{
-    width:20px; height:20px; border-radius:5px; border:1px solid var(--line);
+    width:22px; height:22px; border-radius:50%; border:1px solid var(--line);
     background:var(--bg-2); color:var(--ink-dim); cursor:pointer; font-size:11px; line-height:1;
+    transition:background .12s, color .12s;
   }
-  .stage-nav button:hover:not(:disabled){ background:var(--bg-3); color:var(--ink); }
+  .stage-nav button:hover:not(:disabled){ background:var(--accent-dim); color:var(--ink); }
   .stage-nav button:disabled{ opacity:.3; cursor:default; }
+
+  .settings-menu{ position:relative; }
+  .btn.icon-only{ width:32px; height:32px; padding:0; display:flex; align-items:center; justify-content:center; font-size:15px; border-radius:50%; }
+  .settings-dropdown{
+    position:absolute; top:calc(100% + 8px); right:0; z-index:70;
+    background:var(--bg-2); border:1px solid var(--line); border-radius:var(--radius);
+    box-shadow:0 14px 32px -10px #000000cc;
+    padding:8px; display:flex; flex-direction:column; gap:6px; min-width:190px;
+    opacity:0; transform:translateY(-6px) scale(.98); pointer-events:none;
+    transition:opacity .14s ease, transform .14s ease;
+  }
+  .settings-dropdown.show{ opacity:1; transform:translateY(0) scale(1); pointer-events:auto; }
+  .settings-dropdown .stat-item{ padding:6px 10px; font-size:11.5px; color:var(--ink-faint); }
+  .settings-dropdown .btn{ width:100%; justify-content:flex-start; text-align:left; }
+  .btn.danger-ghost{ color:#d99a8f; background:transparent; border-color:transparent; }
+  .btn.danger-ghost:hover{ background:#3a2320; border-color:#5a332c; color:#f0b3a8; }
 
   /* ---------- ana içerik ---------- */
   .main{ flex:1; display:flex; min-height:0; }
@@ -140,8 +179,8 @@
   .boss-banner{
     position:absolute; top:8px; left:50%; transform:translateX(-50%);
     background:linear-gradient(180deg,#5a2c26,#3a1c18); border:1px solid #7a3c33;
-    color:#f0c9a8; font-size:11px; padding:3px 12px; border-radius:6px; letter-spacing:.5px;
-    opacity:0; transition:opacity .3s; pointer-events:none; z-index:5;
+    color:#f0c9a8; font-size:10.5px; font-weight:700; padding:4px 14px; border-radius:999px; letter-spacing:.8px;
+    opacity:0; transition:opacity .3s; pointer-events:none; z-index:5; box-shadow:0 4px 14px -4px #000a;
   }
   .boss-banner.show{ opacity:1; }
   .wave-progress{
@@ -293,28 +332,40 @@
 
   /* ---------- yan panel ---------- */
   .side{ flex:1; display:flex; flex-direction:column; min-width:300px; min-height:0; background:var(--bg-1); }
-  .tabs{ display:flex; border-bottom:1px solid var(--line); background:var(--bg-2); }
+  .tabs{ display:flex; border-bottom:1px solid var(--line); background:var(--bg-2); padding:0 var(--sp-2); gap:2px; }
   .tab{
-    flex:1; padding:9px 4px; text-align:center; font-size:10.8px; color:var(--ink-faint);
-    cursor:pointer; border-bottom:2px solid transparent; letter-spacing:.1px; line-height:1.3;
+    flex:1; padding:9px 2px 8px; text-align:center; font-size:9.5px; color:var(--ink-faint);
+    cursor:pointer; letter-spacing:.1px; line-height:1.4;
+    display:flex; flex-direction:column; align-items:center; gap:2px;
+    border-radius:var(--radius-sm) var(--radius-sm) 0 0;
+    position:relative; top:1px;
+    transition:color .12s, background .12s;
   }
-  .tab:hover{ color:var(--ink-dim); }
-  .tab.active{ color:var(--accent-bright); border-bottom-color:var(--accent); background:var(--bg-1); }
+  .tab-ico{ font-size:15px; filter:grayscale(.4); opacity:.75; transition:filter .12s, opacity .12s; }
+  .tab-label{ font-weight:600; }
+  .tab:hover{ color:var(--ink-dim); background:var(--bg-3); }
+  .tab.active{
+    color:var(--accent-bright); background:var(--bg-1);
+    box-shadow:inset 0 2px 0 var(--accent);
+  }
+  .tab.active .tab-ico{ filter:none; opacity:1; }
   .panel{ flex:1; min-height:0; overflow-y:auto; -webkit-overflow-scrolling:touch; padding:14px; display:none; }
   .panel.active{ display:block; }
 
   .hero-card{
-    background:var(--bg-2); border:1px solid var(--line); border-radius:8px;
-    padding:10px 12px; margin-bottom:10px;
+    background:var(--bg-2); border:1px solid var(--line-soft); border-radius:var(--radius);
+    padding:12px 14px; margin-bottom:10px;
+    box-shadow:0 1px 0 rgba(0,0,0,.2);
   }
   .hero-card-top{ display:flex; align-items:center; gap:10px; }
-  .hero-mini svg{ width:34px; height:34px; }
-  .hero-card-name{ font-size:13px; font-weight:600; }
-  .hero-card-role{ font-size:10.5px; color:var(--ink-faint); }
-  .hero-card .hpbar-wrap{ width:100%; margin:6px 0 2px; }
-  .stat-row{ display:flex; flex-wrap:wrap; gap:8px; font-size:11px; color:var(--ink-dim); margin-top:6px; }
-  .stat-chip{ background:var(--bg-3); padding:2px 7px; border-radius:5px; }
-  .equip-row{ display:flex; gap:6px; margin-top:8px; }
+  .hero-mini{ background:var(--bg-1); border-radius:var(--radius-sm); padding:4px; }
+  .hero-mini svg{ width:34px; height:34px; display:block; }
+  .hero-card-name{ font-size:13.5px; font-weight:700; letter-spacing:.1px; }
+  .hero-card-role{ font-size:10px; color:var(--ink-faint); text-transform:uppercase; letter-spacing:.5px; }
+  .hero-card .hpbar-wrap{ width:100%; margin:8px 0 4px; }
+  .stat-row{ display:flex; flex-wrap:wrap; gap:6px; font-size:11px; color:var(--ink-dim); margin-top:8px; }
+  .stat-chip{ background:var(--bg-1); padding:3px 8px; border-radius:6px; font-weight:600; }
+  .equip-row{ display:flex; gap:6px; margin-top:10px; }
   .equip-slot{
     flex:1; border:1px dashed var(--line); border-radius:6px; padding:5px; font-size:9.5px;
     text-align:center; color:var(--ink-faint); min-height:40px; display:flex; flex-direction:column;
@@ -327,15 +378,17 @@
   .eq-slot-empty-icon{ opacity:.35; font-size:14px; }
   .eq-slot-rarity{ font-size:8.5px; line-height:1.2; }
   .btn{
-    background:var(--bg-3); border:1px solid var(--line); color:var(--ink);
-    padding:6px 12px; border-radius:6px; font-size:11.5px; cursor:pointer;
-    transition:background .15s, border-color .15s;
+    background:var(--bg-3); border:1px solid var(--line); color:var(--ink-dim);
+    padding:7px 13px; border-radius:var(--radius-sm); font-size:11.5px; font-weight:600; cursor:pointer;
+    transition:background .15s, border-color .15s, color .15s, transform .08s;
+    display:inline-flex; align-items:center; justify-content:center; gap:5px;
   }
-  .btn:hover:not(:disabled){ background:#413630; border-color:var(--accent-dim); }
+  .btn:hover:not(:disabled){ background:var(--bg-4); border-color:var(--accent-dim); color:var(--ink); }
+  .btn:active:not(:disabled){ transform:scale(.97); }
   .btn:disabled{ opacity:.35; cursor:default; }
   .btn.primary{ background:var(--accent-dim); border-color:var(--accent); color:#eafbe8; }
-  .btn.primary:hover:not(:disabled){ background:var(--accent); }
-  .btn.small{ padding:3px 8px; font-size:10.5px; }
+  .btn.primary:hover:not(:disabled){ background:var(--accent); border-color:var(--accent-bright); }
+  .btn.small{ padding:4px 10px; font-size:10.5px; }
   .btn.full{ width:100%; margin-top:8px; }
 
   .recruit-box{
@@ -345,11 +398,12 @@
 
   .inv-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(58px,1fr)); gap:8px; margin-bottom:10px; }
   .item-slot{
-    aspect-ratio:1; border-radius:7px; border:2px solid var(--line); background:var(--bg-2);
+    aspect-ratio:1; border-radius:var(--radius-sm); border:2px solid var(--line); background:var(--bg-2);
     display:flex; align-items:center; justify-content:center; font-size:20px; cursor:pointer;
-    position:relative;
+    position:relative; transition:filter .12s, transform .08s;
   }
-  .item-slot:hover{ filter:brightness(1.2); }
+  .item-slot:hover{ filter:brightness(1.25); }
+  .item-slot:active{ transform:scale(.94); }
   .item-slot.common{ border-color:var(--r-common); }
   .item-slot.uncommon{ border-color:var(--r-uncommon); box-shadow:0 0 8px -2px var(--r-uncommon); }
   .item-slot.rare{ border-color:var(--r-rare); box-shadow:0 0 10px -2px var(--r-rare); }
@@ -357,9 +411,9 @@
   .item-slot.legendary{ border-color:var(--r-legendary); box-shadow:0 0 14px 0 var(--r-legendary); }
 
   .item-detail{
-    background:var(--bg-3); border:1px solid var(--line); border-radius:8px; padding:12px; margin-bottom:12px;
+    background:var(--bg-3); border:1px solid var(--line-soft); border-radius:var(--radius); padding:14px; margin-bottom:12px;
   }
-  .item-detail h4{ margin:0 0 4px; font-size:13px; }
+  .item-detail h4{ margin:0 0 4px; font-size:13.5px; font-weight:700; }
   .item-lore{
     font-size:11px; font-style:italic; color:var(--ink-faint); line-height:1.4;
     margin:2px 0 8px; padding-left:8px; border-left:2px solid var(--line);
@@ -368,7 +422,7 @@
   .item-actions{ display:flex; gap:6px; margin-top:10px; flex-wrap:wrap; }
 
   .chest-box{
-    background:var(--bg-2); border:1px solid var(--line); border-radius:8px; padding:12px; margin-bottom:12px;
+    background:var(--bg-2); border:1px solid var(--line-soft); border-radius:var(--radius); padding:14px; margin-bottom:14px;
     display:flex; align-items:center; gap:12px;
   }
   .chest-box .chest-icon{ font-size:28px; }
@@ -376,54 +430,60 @@
 
   .rune-tree{ display:flex; flex-direction:column; gap:8px; }
   .rune-node{
-    background:var(--bg-2); border:1px solid var(--line); border-radius:8px; padding:10px 12px;
+    background:var(--bg-2); border:1px solid var(--line-soft); border-radius:var(--radius); padding:11px 13px;
     display:flex; align-items:center; gap:10px;
   }
-  .rune-node.owned{ border-color:var(--accent); background:#25302a; }
+  .rune-node.owned{ border-color:var(--accent-dim); background:#212c22; }
   .rune-node.locked{ opacity:.4; }
   .rune-icon{ font-size:18px; width:26px; text-align:center; }
   .rune-info{ flex:1; }
-  .rune-name{ font-size:12.5px; font-weight:600; }
+  .rune-name{ font-size:12.5px; font-weight:700; }
   .rune-desc{ font-size:10.5px; color:var(--ink-faint); }
-  .rune-cost{ font-size:11px; color:var(--gold); font-family:var(--font-mono); white-space:nowrap; }
+  .rune-cost{ font-size:11px; color:var(--gold); font-family:var(--font-mono); white-space:nowrap; font-weight:700; }
 
-  .rebirth-lock{ text-align:center; padding:30px 12px; color:var(--ink-faint); font-size:12.5px; line-height:1.6; }
+  .rebirth-lock{ text-align:center; padding:34px 14px; color:var(--ink-faint); font-size:12.5px; line-height:1.6; }
   .rebirth-lock .rl-icon{ font-size:30px; margin-bottom:10px; }
   .rebirth-lock b{ color:var(--ink-dim); }
   .rebirth-box{
-    background:linear-gradient(180deg,#2a2440,#221c30); border:1px solid #4a3f70; border-radius:10px;
-    padding:14px; margin-bottom:16px; text-align:center;
+    background:linear-gradient(165deg,#241f38,#1d1826); border:1px solid #423a5f; border-radius:var(--radius-lg);
+    padding:16px; margin-bottom:18px; text-align:center;
   }
   .rebirth-box p{ font-size:11.5px; color:var(--ink-dim); line-height:1.55; margin:0 0 12px; }
-  .rebirth-box .rb-stardust-preview{ font-size:20px; color:#c9a8f0; font-weight:700; margin-bottom:6px; }
+  .rebirth-box .rb-stardust-preview{ font-size:22px; color:#c9a8f0; font-weight:800; margin-bottom:6px; }
   .prestige-node .rune-name b{ color:var(--accent-bright); font-weight:600; font-size:10.5px; }
   .prestige-node .rune-cost{ color:#c9a8f0; }
   .stardust-amt{ color:#c9a8f0; font-family:var(--font-mono); font-weight:700; }
 
-  .section-title{ font-size:11px; text-transform:uppercase; letter-spacing:.8px; color:var(--ink-faint); margin:14px 0 8px; }
+  .section-title{
+    font-size:10.5px; text-transform:uppercase; letter-spacing:1.2px; font-weight:700;
+    color:var(--ink-faint); margin:20px 0 10px; display:flex; align-items:center; gap:8px;
+  }
+  .section-title::before{ content:''; width:3px; height:11px; background:var(--accent-dim); border-radius:2px; }
   .section-title:first-child{ margin-top:0; }
 
   .empty-hint{ font-size:11.5px; color:var(--ink-faint); text-align:center; padding:20px 10px; }
 
   /* modal */
   .modal-back{
-    position:absolute; inset:0; background:#000000aa; display:none; align-items:center; justify-content:center; z-index:80;
+    position:absolute; inset:0; background:#0a0705d9; display:none; align-items:center; justify-content:center; z-index:80;
+    backdrop-filter:blur(2px);
   }
   .modal-back.show{ display:flex; }
   .modal{
-    background:var(--bg-2); border:1px solid var(--line); border-radius:10px; padding:22px; width:min(360px,90%);
-    text-align:center;
+    background:var(--bg-2); border:1px solid var(--line-soft); border-radius:var(--radius-lg); padding:24px; width:min(360px,90%);
+    text-align:center; box-shadow:0 24px 60px -16px #000000e0;
   }
-  .modal h3{ margin:0 0 6px; font-size:15px; }
-  .modal p{ font-size:12.5px; color:var(--ink-dim); margin:6px 0 16px; }
+  .modal h3{ margin:0 0 6px; font-size:16px; font-weight:800; letter-spacing:.2px; }
+  .modal p{ font-size:12.5px; color:var(--ink-dim); margin:6px 0 16px; line-height:1.55; }
   .class-pick{ display:flex; gap:10px; justify-content:center; }
   .class-opt{
-    flex:1; background:var(--bg-3); border:1px solid var(--line); border-radius:8px; padding:12px 8px; cursor:pointer;
+    flex:1; background:var(--bg-3); border:1px solid var(--line-soft); border-radius:var(--radius); padding:14px 10px; cursor:pointer;
+    transition:border-color .15s, transform .1s, background .15s;
   }
-  .class-opt:hover{ border-color:var(--accent); }
+  .class-opt:hover{ border-color:var(--accent); background:var(--bg-4); transform:translateY(-2px); }
   .class-opt svg{ width:40px; height:40px; }
-  .class-opt div.cn{ font-size:12px; margin-top:6px; font-weight:600; }
-  .class-opt div.cd{ font-size:10px; color:var(--ink-faint); }
+  .class-opt div.cn{ font-size:12.5px; margin-top:8px; font-weight:700; }
+  .class-opt div.cd{ font-size:10px; color:var(--ink-faint); margin-top:2px; }
 
   /* profesyonel kuşanma seçim ekranı */
   .equip-picker{ text-align:left; }
@@ -463,6 +523,10 @@
     .stage-view{ border-right:none; border-bottom:1px solid var(--line); min-height:260px; }
     .os-window{ width:98vw; height:96vh; }
     #statStageLabel{ max-width:90px; }
+    .statbar{ gap:var(--sp-2); padding:8px var(--sp-3); }
+    .wallet{ padding:5px 10px; gap:8px; }
+    .stage-pill{ padding:5px 6px 5px 12px; }
+    .tab-label{ font-size:9px; }
   }
 </style>
 </head>
@@ -483,21 +547,32 @@
   <div class="loot-toasts" id="lootToasts"></div>
 
   <div class="statbar">
-    <div class="stat-item"><span class="stat-icon">💰</span><span class="gold-amt" id="statGold">0</span></div>
-    <div class="stat-item"><span class="stat-icon">🔷</span><b id="statEssence">0</b>&nbsp;Öz</div>
-    <div class="stat-item" id="stardustIndicator" style="display:none;"><span class="stat-icon">✨</span><b id="statStardust">0</b></div>
+    <div class="wallet">
+      <div class="stat-item"><span class="stat-icon">💰</span><span class="gold-amt" id="statGold">0</span></div>
+      <div class="wallet-div"></div>
+      <div class="stat-item"><span class="stat-icon">🔷</span><b id="statEssence">0</b></div>
+      <div class="wallet-div" id="stardustDiv" style="display:none;"></div>
+      <div class="stat-item" id="stardustIndicator" style="display:none;"><span class="stat-icon">✨</span><b id="statStardust">0</b></div>
+    </div>
+    <div class="spacer"></div>
     <div class="stage-pill">
       <span id="statStageLabel">Aşama 1</span>
       <div class="stage-nav">
-        <button id="stagePrev">◀</button>
-        <button id="stageNext">▶</button>
+        <button id="stagePrev" title="Önceki aşama">◀</button>
+        <button id="stageNext" title="Sonraki aşama">▶</button>
         <button id="stageFrontier" title="En ileri aşamaya dön">⇥</button>
       </div>
     </div>
     <div class="spacer"></div>
-    <div class="stat-item" id="autoOpenIndicator" style="display:none;">⚙️ Oto-Açılım Aktif</div>
-    <button class="btn small primary" id="btnInstall" style="display:none;" title="Ana ekrana ekle">📲 Yükle</button>
-    <button class="btn small" id="btnReset" title="Kaydı sıfırla">Sıfırla</button>
+    <div class="settings-menu">
+      <button class="btn small icon-only" id="btnSettingsToggle" title="Ayarlar">⚙</button>
+      <div class="settings-dropdown" id="settingsDropdown">
+        <div class="stat-item" id="autoOpenIndicator" style="display:none;">⚙️&nbsp;Oto-Açılım Aktif</div>
+        <button class="btn" id="btnMute" title="Sesi kapat/aç">🔊&nbsp;Ses</button>
+        <button class="btn primary" id="btnInstall" style="display:none;" title="Ana ekrana ekle">📲&nbsp;Ana Ekrana Ekle</button>
+        <button class="btn danger-ghost" id="btnReset" title="Kaydı sıfırla">Kaydı Sıfırla</button>
+      </div>
+    </div>
   </div>
 
   <div class="main">
@@ -513,10 +588,10 @@
 
     <div class="side">
       <div class="tabs">
-        <div class="tab active" data-tab="party">Parti</div>
-        <div class="tab" data-tab="inventory">Envanter</div>
-        <div class="tab" data-tab="runes">Rün Ağacı</div>
-        <div class="tab" data-tab="prestige">Yeniden Doğuş</div>
+        <div class="tab active" data-tab="party"><span class="tab-ico">⚔️</span><span class="tab-label">Parti</span></div>
+        <div class="tab" data-tab="inventory"><span class="tab-ico">🎒</span><span class="tab-label">Envanter</span></div>
+        <div class="tab" data-tab="runes"><span class="tab-ico">🔮</span><span class="tab-label">Rün Ağacı</span></div>
+        <div class="tab" data-tab="prestige"><span class="tab-ico">✨</span><span class="tab-label">Yeniden Doğuş</span></div>
       </div>
 
       <div class="panel active" id="panel-party">
@@ -570,10 +645,10 @@ const RARITY = [
 ];
 
 const CLASS_DEFS = {
-  knight: { name:'Şövalye', role:'Tank', baseHp:70, baseAtk:6,  baseDef:9, baseCrit:0.04, atkSpeed:1.0, tint:'#8a97a8', weapon:'#c9c9c9', heal:false, recruitCost:0 },
-  ranger: { name:'Okçu',    role:'DPS',  baseHp:42, baseAtk:9,  baseDef:3, baseCrit:0.22, atkSpeed:1.25,tint:'#7fae6a', weapon:'#caa15c', heal:false, recruitCost:180 },
-  priest: { name:'Rahip',   role:'Destek', baseHp:40, baseAtk:4, baseDef:4, baseCrit:0.05, atkSpeed:0.9, tint:'#e8d9a8', weapon:'#d9c37a', heal:true,  recruitCost:260 },
-  mage:   { name:'Büyücü',  role:'DPS',  baseHp:36, baseAtk:12, baseDef:2, baseCrit:0.12, atkSpeed:0.7, tint:'#8a6bb0', weapon:'#b98be0', heal:false, recruitCost:420 },
+  knight: { name:'Şövalye', role:'Tank', baseHp:82, baseAtk:6,  baseDef:9, baseCrit:0.04, atkSpeed:1.0, tint:'#8a97a8', weapon:'#c9c9c9', heal:false, recruitCost:0 },
+  ranger: { name:'Okçu',    role:'DPS',  baseHp:48, baseAtk:9,  baseDef:3, baseCrit:0.22, atkSpeed:1.25,tint:'#7fae6a', weapon:'#caa15c', heal:false, recruitCost:180 },
+  priest: { name:'Rahip',   role:'Destek', baseHp:46, baseAtk:4, baseDef:4, baseCrit:0.05, atkSpeed:0.9, tint:'#e8d9a8', weapon:'#d9c37a', heal:true,  recruitCost:260 },
+  mage:   { name:'Büyücü',  role:'DPS',  baseHp:42, baseAtk:12, baseDef:2, baseCrit:0.12, atkSpeed:0.7, tint:'#8a6bb0', weapon:'#b98be0', heal:false, recruitCost:420 },
 };
 const CLASS_ORDER = ['knight','ranger','priest','mage'];
 
@@ -676,6 +751,7 @@ function freshState(){
     prestigeLevels:{},   // { powerLegacy: 3, ... }
     totalRebirths:0,
     lifetimeMaxStage:1,  // yeniden doğuş eşiği kontrolü için tüm-zamanların en yükseği
+    muted:false,         // ses tercihi — bu da bir ilerleme değil, kalıcı bir ayar
   };
 }
 
@@ -898,8 +974,8 @@ function spawnEnemy(){
   const st = state.stage;
   const isBoss = state.waveInStage >= STAGE_LEN;
   const scale = Math.pow(1.145, st-1);
-  const hpBase = isBoss ? 90*4.2 : 26;
-  const atkBase = isBoss ? 5.5*1.5 : 4;
+  const hpBase = isBoss ? 90*3.2 : 26;
+  const atkBase = isBoss ? 5.5*1.2 : 4;
   const name = isBoss ? BOSS_NAMES[(st/1|0)%BOSS_NAMES.length] : MONSTER_NAMES[Math.floor(Math.random()*MONSTER_NAMES.length)];
   enemy = {
     name, isBoss,
@@ -925,6 +1001,64 @@ function pushLog(html){
   while(el.children.length>60) el.removeChild(el.firstChild);
   el.scrollTop = el.scrollHeight;
 }
+
+/* ============================================================
+   SES MOTORU — harici dosya YOK. Web Audio API ile her ton anlık
+   sentezleniyor (osilatör + zarf), tek dosya felsefesine uygun.
+============================================================ */
+
+let audioCtx = null;
+function ensureAudioCtx(){
+  if(audioCtx) return audioCtx;
+  try{
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    if(!Ctx) return null;
+    audioCtx = new Ctx();
+    return audioCtx;
+  }catch(e){ return null; }
+}
+function resumeAudioCtx(){
+  const ctx = ensureAudioCtx();
+  if(ctx && ctx.state==='suspended' && ctx.resume) ctx.resume().catch(()=>{});
+}
+function isSoundOn(){ return !(state && state.muted); }
+
+// Tek bir "bip" çalar: freq(başlangıç), duration(sn), type(dalga şekli),
+// gain(ses seviyesi), opts.freqTo (varsa perdeyi kaydırır), opts.delay (gecikme, sn).
+function playTone(freq, duration, type, gain, opts){
+  if(!isSoundOn()) return;
+  const ctx = ensureAudioCtx();
+  if(!ctx) return;
+  opts = opts || {};
+  try{
+    const t0 = ctx.currentTime + (opts.delay||0);
+    const osc = ctx.createOscillator();
+    const g = ctx.createGain();
+    osc.type = type || 'square';
+    osc.frequency.setValueAtTime(freq, t0);
+    if(opts.freqTo) osc.frequency.exponentialRampToValueAtTime(Math.max(20,opts.freqTo), t0+duration);
+    g.gain.setValueAtTime(0.0001, t0);
+    g.gain.linearRampToValueAtTime(gain, t0+0.008);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0+duration);
+    osc.connect(g); g.connect(ctx.destination);
+    osc.start(t0); osc.stop(t0+duration+0.03);
+  }catch(e){ /* sessiz geç */ }
+}
+
+function sfxHit(isCrit){ isCrit ? playTone(520,0.14,'square',0.10,{freqTo:180}) : playTone(340,0.07,'square',0.07,{freqTo:220}); }
+function sfxTakeDamage(){ playTone(150,0.12,'sawtooth',0.07,{freqTo:80}); }
+function sfxGold(){ playTone(880,0.055,'square',0.05); playTone(1180,0.07,'square',0.05,{delay:0.05}); }
+function sfxLevelUp(){ [523,659,784,1047].forEach((f,i)=>playTone(f,0.16,'triangle',0.09,{delay:i*0.07})); }
+function sfxChestOpen(rarityIdx){
+  if(rarityIdx>=4) [392,523,659,784,988,1245].forEach((f,i)=>playTone(f,0.2,'triangle',0.09,{delay:i*0.055}));
+  else if(rarityIdx>=2) [440,660,880].forEach((f,i)=>playTone(f,0.14,'triangle',0.08,{delay:i*0.06}));
+  else playTone(500,0.08,'square',0.06,{freqTo:700});
+}
+function sfxPurchase(){ playTone(600,0.05,'square',0.06,{freqTo:900}); }
+function sfxRebirth(){ [220,277,330,415,523,659].forEach((f,i)=>playTone(f,0.28,'sine',0.08,{delay:i*0.09})); }
+function sfxWipe(){ playTone(220,0.35,'sawtooth',0.08,{freqTo:80}); }
+function sfxBossVictory(){ [523,659,784,1047,784,1047].forEach((f,i)=>playTone(f,0.15,'square',0.08,{delay:i*0.09})); }
+function sfxClick(){ playTone(700,0.035,'square',0.045,{freqTo:900}); }
 
 /* ============================================================
    PİKSEL SPRITE VERİSİ (satır dizileri + palet)
@@ -1180,11 +1314,14 @@ function renderStatbar(){
   document.getElementById('statGold').textContent = Math.floor(state.gold).toLocaleString('tr-TR');
   document.getElementById('statEssence').textContent = state.essence;
   const stardustEl = document.getElementById('stardustIndicator');
+  const stardustDiv = document.getElementById('stardustDiv');
   if(state.stardust>0 || state.totalRebirths>0){
     stardustEl.style.display = 'flex';
+    if(stardustDiv) stardustDiv.style.display = 'block';
     document.getElementById('statStardust').textContent = state.stardust;
   } else {
     stardustEl.style.display = 'none';
+    if(stardustDiv) stardustDiv.style.display = 'none';
   }
   const theme = stageThemeFor(state.stage);
   document.getElementById('statStageLabel').textContent = `Aşama ${state.stage} · ${theme.name}`;
@@ -1193,6 +1330,8 @@ function renderStatbar(){
   document.getElementById('stageNext').disabled = state.stage>=state.maxStageReached;
   document.getElementById('autoOpenIndicator').style.display = autoOpenActive() ? 'flex' : 'none';
   document.getElementById('waveFill').style.width = (Math.min(state.waveInStage,STAGE_LEN)/STAGE_LEN*100)+'%';
+  const muteBtn = document.getElementById('btnMute');
+  if(muteBtn) muteBtn.textContent = state.muted ? '🔇' : '🔊';
 }
 
 // Bir kahramanın en yüksek nadirlikteki ekipmanına göre parıltı rengi döner.
@@ -1557,6 +1696,7 @@ function renderRunes(){
       state.gold -= r.cost;
       state.runes[key] = true;
       pushLog(`<span class="lg-good">Rün açıldı: ${r.name}</span>`);
+      sfxPurchase();
       render(); saveGame();
     });
   });
@@ -1565,9 +1705,12 @@ function renderRunes(){
 function renderPrestige(){
   const wrap = document.getElementById('prestigeContent');
   if(!wrap) return;
-  const eligible = state.maxStageReached >= REBIRTH_MIN_STAGE;
+  const eligibleNow = state.maxStageReached >= REBIRTH_MIN_STAGE;
+  const hasProgress = state.totalRebirths > 0 || state.stardust > 0;
 
-  if(!eligible){
+  // Hiç ilerleme yok ve şu an da uygun değilsen: harcayacak bir şey olmadığı
+  // için tamamen kilitli görünümü göster.
+  if(!eligibleNow && !hasProgress){
     wrap.innerHTML = `
       <div class="rebirth-lock">
         <div class="rl-icon">🔒</div>
@@ -1577,15 +1720,29 @@ function renderPrestige(){
     return;
   }
 
-  const preview = calcStardustGain(state.maxStageReached);
-  let html = `
-    <div class="rebirth-box">
-      <div class="rb-stardust-preview">✨ +${preview}</div>
-      <p>Yeniden doğarsan altının, kahramanların ve envanterin sıfırlanır — ama en yüksek
-      ulaştığın aşamaya göre yukarıdaki kadar <b>Yıldız Tozu</b> kazanırsın. Bu kalıcı kalır ve
-      aşağıdaki mirasları güçlendirmek için kullanılır. Rün Ağacı da sıfırlanır, ama miraslar asla silinmez.</p>
-      <button class="btn primary full" id="btnRebirth">Yeniden Doğ</button>
-    </div>
+  let html = '';
+  if(eligibleNow){
+    const preview = calcStardustGain(state.maxStageReached);
+    html += `
+      <div class="rebirth-box">
+        <div class="rb-stardust-preview">✨ +${preview}</div>
+        <p>Yeniden doğarsan altının, kahramanların ve envanterin sıfırlanır — ama en yüksek
+        ulaştığın aşamaya göre yukarıdaki kadar <b>Yıldız Tozu</b> kazanırsın. Bu kalıcı kalır ve
+        aşağıdaki mirasları güçlendirmek için kullanılır. Rün Ağacı da sıfırlanır, ama miraslar asla silinmez.</p>
+        <button class="btn primary full" id="btnRebirth">Yeniden Doğ</button>
+      </div>`;
+  } else {
+    // Daha önce en az bir kez doğmuş ama bu turda henüz eşiğe ulaşmamış:
+    // yine de mirasları harcayabilsin diye ağacı gösteriyoruz, sadece
+    // yeniden doğuş butonunu küçük bir hatırlatmayla değiştiriyoruz.
+    html += `
+      <div class="rebirth-lock" style="padding:16px 12px; margin-bottom:4px;">
+        🔒 Bir sonraki Yeniden Doğuş için <b>Aşama ${REBIRTH_MIN_STAGE}</b>'e ulaş
+        (şu anki en yüksek aşaman: <b>${state.maxStageReached}</b>)
+      </div>`;
+  }
+
+  html += `
     <div class="section-title">Yıldız Tozu: <span class="stardust-amt">✨ ${state.stardust}</span> — Kalıcı Miraslar</div>
     <div style="font-size:10.5px;color:var(--ink-faint);margin:-4px 0 10px;">Toplam yeniden doğuş: ${state.totalRebirths} · Tüm zamanların en yüksek aşaması: ${Math.max(state.lifetimeMaxStage||1, state.maxStageReached)}</div>
     <div class="rune-tree" id="prestigeTree">
@@ -1621,6 +1778,7 @@ function renderPrestige(){
       state.stardust -= cost;
       state.prestigeLevels[node.key] = prestigeLevel(node.key)+1;
       pushLog(`<span class="lg-rare">${node.name} yükseltildi: Sv.${prestigeLevel(node.key)}</span>`);
+      sfxPurchase();
       render(); saveGame();
     });
   });
@@ -1648,16 +1806,19 @@ function performRebirth(){
   const keptPrestigeLevels = state.prestigeLevels;
   const keptTotalRebirths = (state.totalRebirths||0) + 1;
   const keptLifetimeMaxStage = Math.max(state.lifetimeMaxStage||1, state.maxStageReached);
+  const keptMuted = state.muted;
 
   const fresh = freshState();
   fresh.stardust = keptStardust;
   fresh.prestigeLevels = keptPrestigeLevels;
   fresh.totalRebirths = keptTotalRebirths;
   fresh.lifetimeMaxStage = keptLifetimeMaxStage;
+  fresh.muted = keptMuted;
 
   state = fresh;
   enemy = null;
   hideModal();
+  sfxRebirth();
   pushLog(`<span class="lg-good">✨ Yeniden doğdun! +${gain} Yıldız Tozu kazandın. (Toplam yeniden doğuş: ${keptTotalRebirths})</span>`);
   showClassPickModal();
   spawnEnemy();
@@ -1753,6 +1914,7 @@ function spawnParticles(x, y, color, count){
 ============================================================ */
 
 function celebrateLevelUp(h){
+  sfxLevelUp();
   const elId = 'unit-hero-'+h.slot;
   const unit = document.getElementById(elId);
   if(!unit) return;
@@ -1783,6 +1945,7 @@ function celebrateLevelUp(h){
 
 // Oto-açılım (rün) ile gelen sandıklar için köşede kısa, akışı kesmeyen bildirim
 function showLootToast(item){
+  sfxChestOpen(item.rarityIdx);
   const wrap = document.getElementById('lootToasts');
   if(!wrap) return;
   const rarity = RARITY[item.rarityIdx];
@@ -1796,6 +1959,7 @@ function showLootToast(item){
 
 // Elle sandık açımı için tam ekran ödül açılış modalı
 function showChestRevealModal(item){
+  sfxChestOpen(item.rarityIdx);
   const rarity = RARITY[item.rarityIdx];
   const showRays = item.rarityIdx>=2; // Ender ve üzeri
   const lines = [];
@@ -1885,6 +2049,7 @@ function gameTick(){
     if(!gameTick._reviving){
       gameTick._reviving = true;
       pushLog(`<span class="lg-bad">Parti dağıldı! Yeniden toparlanıyor...</span>`);
+      sfxWipe();
       setTimeout(()=>{
         for(const h of state.heroes){
           const stats = heroTotalStats(h);
@@ -1923,6 +2088,7 @@ function gameTick(){
             const pt = arenaPoint('unit-enemy');
             spawnParticles(pt.x, pt.y, isCrit?'#ff6b52':'#f2d9a8', isCrit?11:6);
             screenShake(isCrit?'lg':'sm');
+            sfxHit(isCrit);
             if(enemy.hp<=0){ onEnemyDefeated(); } else { updateArenaVitals(); }
           });
         } else {
@@ -1934,6 +2100,7 @@ function gameTick(){
           const pt = arenaPoint('unit-enemy');
           spawnParticles(pt.x, pt.y, isCrit?'#ff6b52':'#f2d9a8', isCrit?11:6);
           screenShake(isCrit?'lg':'sm');
+          sfxHit(isCrit);
           if(enemy.hp<=0){ onEnemyDefeated(); return; }
         }
       }
@@ -1975,6 +2142,7 @@ function gameTick(){
         const pt = arenaPoint('unit-hero-'+tank.slot);
         spawnParticles(pt.x, pt.y, '#c1594a', tank.hpCur<=0?10:5);
         screenShake(tank.hpCur<=0?'lg':'sm');
+        sfxTakeDamage();
         if(tank.hpCur<=0){ tank.hpCur=0; tank.downed=true; pushLog(`<span class="lg-bad">${CLASS_DEFS[tank.cls].name} yere düştü!</span>`); }
       }
     }
@@ -1988,11 +2156,12 @@ function onEnemyDefeated(){
   const goldGain = Math.round((wasBoss? 40:8) * Math.pow(1.1,state.stage-1) * goldMult());
   state.gold += goldGain;
   pushLog(`<span class="lg-gold">${enemy.name} yenildi (+${goldGain}💰)</span>`);
+  if(wasBoss) sfxBossVictory(); else sfxGold();
 
   // XP dağıt
   for(const h of state.heroes){
     if(h.downed) continue;
-    h.xp += wasBoss? 18:5;
+    h.xp += wasBoss? 20:6;
     const need = xpToNext(h.level);
     if(h.xp>=need){
       h.xp -= need; h.level++;
@@ -2078,6 +2247,7 @@ function showClassPickModal(){
   `);
   document.querySelectorAll('.class-opt').forEach(el=>{
     el.addEventListener('click', ()=>{
+      resumeAudioCtx();
       const cls = el.dataset.cls;
       state.heroes.push(makeHero(1, cls));
       state.started = true;
@@ -2142,6 +2312,26 @@ document.getElementById('btnOpenChest').addEventListener('click', ()=>{
     if(!result.autoSold) showChestRevealModal(result.item);
   }
 });
+document.getElementById('btnMute').addEventListener('click', ()=>{
+  state.muted = !state.muted;
+  resumeAudioCtx();
+  if(!state.muted) sfxClick();
+  renderStatbar();
+  saveGame();
+});
+
+// Ayarlar açılır menüsü: dişli simgesine dokununca aç/kapa, dışarı tıklayınca kapat.
+document.getElementById('btnSettingsToggle').addEventListener('click', (e)=>{
+  e.stopPropagation();
+  document.getElementById('settingsDropdown').classList.toggle('show');
+});
+document.addEventListener('click', (e)=>{
+  const dd = document.getElementById('settingsDropdown');
+  if(!dd || !dd.classList.contains('show')) return;
+  if(e.target.closest('.settings-menu')) return;
+  dd.classList.remove('show');
+});
+
 document.getElementById('btnReset').addEventListener('click', ()=>{
   showModal(`
     <h3>Kaydı sıfırla?</h3>
@@ -2155,7 +2345,9 @@ document.getElementById('btnReset').addEventListener('click', ()=>{
   document.getElementById('cancelReset').addEventListener('click', hideModal);
   document.getElementById('confirmReset').addEventListener('click', async ()=>{
     hideModal();
+    const keptMuted = state.muted;
     state = freshState();
+    state.muted = keptMuted;
     enemy = null;
     await saveGame();
     showClassPickModal();
